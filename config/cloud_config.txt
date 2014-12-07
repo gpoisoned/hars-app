@@ -1,0 +1,31 @@
+#cloud-config
+apt_mirror: http://ubuntu.cs.utah.edu/ubuntu/
+apt_sources:
+  - source: "ppa:vbernat/haproxy-1.5" # HA Proxy Repo
+package_update: true
+users:
+  - default
+  - name: jira3216
+    shell: /bin/bash
+    gecos: Jiwan K. Rana
+    groups: admin
+    sudo: ALL=(ALL) NOPASSWD:ALL
+    lock-passwd: true
+    ssh-authorized-keys:
+      - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCpFJJ6CiUpbZOAz6kJK5duRCzbTSzXrLVT8Ia6v+xGYodn0f8mjWi/92Gscf6cirwHhq+IKEkjsZP8finEaa+5BWB8iflXcCln4XVjU+HUO9Xr5eIogc67chffNqsUAQTybUzFIqo3z3bS+2ZMncAvQskd8NxqqE7P8GAhVZgdLFR2ICHxrqeiXweMtD2QOC9gAPBxLe+PIglZd4q1Yc1hAGkElqEEYp6tqWiZr1nHUOFS+XmdXED1iF+JHuCEsh2z489JDtNCXVY6dMgEMGpJ3iwmg0hLR7motnM/qR4JAqEQFpcNITlykMbcqmNq4A/udryNG0dOUmNbwZmPsIQ5 jira3216@jira3216-server-1
+packages:
+   - avahi-daemon
+   - python-pika
+   - python-redis
+   - python-pil
+   - rabbitmq-server
+   - python-pip
+   - redis-server
+
+runcmd:
+   - echo "deb [arch=amd64] http://deb.openalpr.com/master/ openalpr main" | tee /etc/apt/sources.list.d/openalpr.list
+   - apt-get update
+   - apt-get install openalpr -y --force-yes
+   - apt-get install haproxy -y --force-yes
+   - apt-get install python-virtualenv -y --force-yes
+   - apt-get install git -y --force-yes
