@@ -1,0 +1,19 @@
+# The contents of this file should goto "/etc/nginx/sites-available/default"
+# This file links the nginx to listen to uwsgi socket: /tmp/uwsgi.sock
+
+# ************************************************************************************
+# NOTE:
+#       Make sure that this file is symlinked to /etc/nginx/site-enabled/default
+#       To do that you can do:
+#             ln -s /etc/nginx/sites-available/default /etc/nginx/sites-enabled/default
+#*************************************************************************************
+
+server {
+    listen       80;
+    server_name  _;
+    location / { try_files $uri @hars-app; }
+    location @hars-app {
+      include uwsgi_params;
+      uwsgi_pass unix:/tmp/uwsgi.sock;
+    }
+}
