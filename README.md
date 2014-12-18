@@ -10,9 +10,6 @@ Date: December 6, 2014
 ###Awesome opensource technologies used listed in no particular order:
 * Flask
 * HA Proxy
-* PIL
-* Redis
-* ZeroMQ
-* Open ALPR
+* ZeroMQ (pyzmq)
 
 #####Ubuntu powers the servers running in an openstack cluster. Yay!
