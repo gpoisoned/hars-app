@@ -15,8 +15,8 @@ logging.basicConfig(filename='server.log',level=logging.DEBUG,\
 app = Flask(__name__)
 context = zmq.Context()
 
-servers = ['tcp://localhost:5558', 'tcp://localhost:5559']
-servers_heartbeats = ['tcp://localhost:6668', 'tcp://localhost:6669']
+servers = ['tcp://127.0.0.1:5558', 'tcp://127.0.0.1:5559']
+servers_heartbeats = ['tcp://127.0.0.1:6668', 'tcp://127.0.0.1:6669']
 server_nbr = 0
 message_queue = Queue()
 

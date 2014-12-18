@@ -16,7 +16,7 @@ CLIENT_HEARTBEAT = 7
 
 HEARTBEAT = 3000
 
-class RouterState(object):
+class RouterState():
     def __init__(self, state=0, status=0, peer_expiry=0, client_status=0, peer_status=0):
         self.state = state
         self.status = status
@@ -71,26 +71,29 @@ def main():
         # Check if the router is primary or backup
         if args.primary:
             logging.info("Running as Primary Router")
-            frontend.bind("tcp://*:5558")
-            backend.bind("tcp://*:5560")
-            client_heartbeat.bind("tcp://*:6668")
+            frontend.bind("tcp://127.0.0.1:5558")
+            backend.bind("tcp://127.0.0.1:5560")
+            client_heartbeat.bind("tcp://127.0.0.1:6668")
 
-            statepub.bind("tcp://*:7778")
+            statepub.bind("tcp://127.0.0.1:7778")
             statesub.setsockopt(zmq.SUBSCRIBE, "")
-            statesub.connect("tcp://localhost:7779")
+            statesub.connect("tcp://127.0.0.1:7779")
 
             router_state.state = STATE_PRIMARY
+            router_state.status = STATUS_ACTIVE
 
         elif args.backup:
             logging.info("Running as Backup Router")
-            frontend.bind("tcp://*:5559")
-            client_heartbeat.bind("tcp://*:6669")
+            frontend.bind("tcp://127.0.0.1:5559")
+            backend.bind("tcp://127.0.0.1:5561")
+            client_heartbeat.bind("tcp://127.0.0.1:6669")
 
-            statepub.bind("tcp://*:7779")
+            statepub.bind("tcp://127.0.0.1:7779")
             statesub.setsockopt(zmq.SUBSCRIBE, "")
-            statesub.connect("tcp://localhost:7778")
+            statesub.connect("tcp://127.0.0.1:7778")
 
             router_state.state = STATE_BACKUP
+            router_state.state = STATUS_PASSIVE
 
         poller = zmq.Poller()
         poller.register(frontend, zmq.POLLIN)
@@ -118,7 +121,10 @@ def main():
                 # print "Hearbeat to Client"
                 # Got client heartbeat
                 router_state.client_status = CLIENT_HEARTBEAT
-                updateRouterState(router_state)
+                try:
+                    updateRouterState(router_state)
+                except:
+                    print "Error in client heartbeat"
 
             elif socks.get(statesub) == zmq.POLLIN:
                 # Peer sent a heartbeat
@@ -128,17 +134,27 @@ def main():
                 router_state.peer_status = int(message)
                 router_state.peer_expiry = int(time.time() * 1000) + (2 * HEARTBEAT)
                 # Update router state
-                updateRouterState(router_state)
+                try:
+                    updateRouterState(router_state)
+                except:
+                    print "Error in statesub"
+                    pass
                 print "Peer expires at %f" % router_state.peer_expiry
             if int(time.time()*1000) >= send_state_at:
                 #send state to peer
                 statepub.send("%d" % router_state.status)
                 send_state_at = int(time.time() * 1000) + HEARTBEAT
 
+                # Only if router is active, Send heartbeat to subscriber
+                print "Router status is: %d" % router_state.status
+                if router_state.status == STATUS_ACTIVE:
+                    backend.send("HB")
+                    print "HB sent to subscriber"
+
         # zmq.device(zmq.FORWARDER, frontend, backend)
     except Exception, e:
+        print "Oops exception !!"
         print e
-        print "bringing down zmq device"
     finally:
         frontend.close()
         backend.close()
