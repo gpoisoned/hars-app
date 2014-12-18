@@ -1,14 +1,8 @@
-import threading
 import zmq
-from Queue import Queue
 
 def main():
     context = zmq.Context()
-    message_queue = Queue()
-
     routers = ['tcp://127.0.0.1:5560', 'tcp://127.0.0.1:5561']
-
-    router_number = 0 # Always try to connect to Primary Router first
 
     primary_router = context.socket(zmq.SUB)
     primary_router.setsockopt(zmq.SUBSCRIBE, '')
